@@ -3,6 +3,7 @@ import pyautogui
 import time
 import random
 import math
+from typing import Optional
 
 def _fitts_duration(distance_px: float, target_width_px: float = 40.0,
                     a: float = 0.12, b: float = 0.085) -> float:
@@ -11,7 +12,7 @@ def _fitts_duration(distance_px: float, target_width_px: float = 40.0,
     target_width_px = max(target_width_px, 4.0)
     return a + b * math.log2(distance_px / target_width_px + 1.0)
 
-def human_move(x: int, y: int, duration: float | None = None,
+def human_move(x: int, y: int, duration: Optional[float] = None,
                target_width_px: float = 40.0,
                easing=pyautogui.easeInOutQuad):
     """
@@ -31,7 +32,7 @@ def human_move(x: int, y: int, duration: float | None = None,
     pyautogui.moveTo(x, y, duration=duration, tween=easing)
 
 # OPTIONAL: curved variant if you want a gentle “arc” sometimes.
-def human_move_curved(x: int, y: int, duration: float | None = None,
+def human_move_curved(x: int, y: int, duration: Optional[float] = None,
                       target_width_px: float = 40.0,
                       easing=pyautogui.easeInOutQuad):
     """
