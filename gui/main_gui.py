@@ -8,7 +8,7 @@ customtkinter.set_default_color_theme("dark-blue")
 # root window
 root = customtkinter.CTk()
 root.geometry("500x500")
-root.title("WizBot GUI")
+root.title("Scripty GUI")
 
 def run_locate():
     # Call your function with an image path

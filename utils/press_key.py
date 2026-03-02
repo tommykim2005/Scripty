@@ -8,9 +8,9 @@ def human_press(key):
         key (key): key
     """
     pyautogui.keyDown(key)
-    time.sleep(globals.random_hold)
+    time.sleep(globals.random_hold())
     pyautogui.keyUp(key)
-    time.sleep(globals.random_delay)
+    time.sleep(globals.random_delay())
     
 def human_type(text):
     """type multiple keys with randomized delays
