@@ -9,8 +9,8 @@ def locate_on_screen(image_path, confidence = 0.8):
         if not box:
             print("Image not Found")
             return False
-        x = random.randint(box.left,box.left + box.width)
-        y = random.randint(box.top,box.top+box.height)
+        x = random.randint(box.left, box.left + box.width - 1)
+        y = random.randint(box.top, box.top + box.height - 1)
         human_move_curved(x,y)
         click.click(x,y)
         print(f"Clicked at ({x}, {y})")
@@ -26,7 +26,7 @@ def pixel_check(x,y,color,pixel_color):
         x (int): x coord
         y (int): y coord
         color (int): 0 = red, 1 = green, 2 = blue
-        res_color (int): r,g,b value for chosen pixel
+        pixel_color (int): r,g,b value for chosen pixel
 
     Returns:
         _type_: _description_

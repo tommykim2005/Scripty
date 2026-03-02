@@ -1,4 +1,4 @@
-import pyautogui,time,random
+import pyautogui,time
 from utils import globals
 
 def human_press(key):
