@@ -5,3 +5,4 @@ keyboard>=0.13.5
 pywin32>=306  # Windows only – install on Windows targets
 numpy>=1.24.0
 Pillow>=10.0.0
+pytest>=8.0.0
