@@ -1,51 +1,90 @@
-# Bug Fix Summary
+# Change Summary
+
+## Overview
+
+This PR merges the `dev` branch into `main`, bringing in the automated pytest
+test suite that was developed after the round-2 bug fixes landed on `main`.
+
+---
 
 ## Changes Made
 
-### 1. `utils/finder.py` — Off-by-one in random click coordinate selection
-- **Bug:** `random.randint(box.left, box.left + box.width)` and `random.randint(box.top, box.top + box.height)` could generate coordinates one pixel outside the right/bottom edge of the matched image region. `pyautogui`'s `Box` namedtuple uses `(left, top, width, height)`, so valid x values are `box.left` through `box.left + box.width - 1` (inclusive).
-- **Fix:** Changed to `random.randint(box.left, box.left + box.width - 1)` and `random.randint(box.top, box.top + box.height - 1)`.
+### Bug Fixes (already on `main` via PR #10)
 
-### 2. `utils/finder.py` — Docstring parameter name mismatch in `pixel_check`
-- **Bug:** The docstring listed `res_color` as the fourth parameter name, but the actual parameter is `pixel_color`.
-- **Fix:** Updated docstring to use `pixel_color`.
+These fixes were applied in previous PRs and are included here for completeness.
 
-### 3. `main.py` — Unused imports
-- **Bug:** `pyautogui`, `win32api`, `win32con`, `random`, `keyboard`, and `numpy` were all imported but never referenced in `main.py`. Additionally `pixel_check` was imported from `utils.finder` but never called.
-- **Fix:** Removed all unused imports; kept only `time` (used in `time.sleep`) and `locate_on_screen` (used in the while loop).
+#### `utils/finder.py` — Off-by-one in random click coordinates
+- `random.randint(box.left, box.left + box.width)` could select a pixel one
+  pixel outside the matched image region. Changed to `box.width - 1` and
+  `box.height - 1` to stay within valid bounds.
 
-### 4. `utils/human_move.py` — Unused `import time`
-- **Bug:** `import time` was present but `time` was never used in the module.
-- **Fix:** Removed the unused import.
+#### `utils/finder.py` — Docstring parameter name mismatch in `pixel_check`
+- Docstring listed `res_color` instead of the actual parameter `pixel_color`.
 
-### 5. `utils/press_key.py` — Unused `import random`
-- **Bug:** `import random` was present but `random` was never used directly in the module (randomization is handled via `globals`).
-- **Fix:** Removed the unused import.
+#### Unused imports removed
+- `main.py`: removed `pyautogui`, `win32api`, `win32con`, `random`, `keyboard`,
+  `numpy`, and `pixel_check`.
+- `utils/human_move.py`: removed unused `import time`.
+- `utils/press_key.py`: removed unused `import random`.
+- `gui/main_gui.py`: removed unused `import tkinter as tk`.
 
-### 6. `gui/main_gui.py` — Unused `import tkinter as tk`
-- **Bug:** `import tkinter as tk` was present but `tk` was never referenced; the GUI uses `customtkinter` exclusively.
-- **Fix:** Removed the unused import.
+---
+
+### Automated Test Suite (new in this PR)
+
+#### `tests/conftest.py`
+Shared pytest configuration that stubs out Windows-only modules (`win32api`,
+`win32con`) so the suite runs cross-platform (macOS, Linux, CI) with no
+display or Windows environment required.
+
+#### `tests/test_finder.py` (165 lines, ~15 tests)
+Unit tests for `utils/finder.py`:
+- `locate_on_screen`: image-found, image-not-found, and exception paths.
+- `pixel_check`: correct-color, wrong-color, and pyautogui-error paths.
+- Random coordinate generation — verifies that produced `(x, y)` values stay
+  strictly within the bounding box (validates the off-by-one fix).
+
+#### `tests/test_human_move.py` (206 lines, ~15 tests)
+Unit tests for `utils/human_move.py`:
+- `human_move_curved`: validates Bézier-curve point generation, mouse movement
+  calls, and timing behavior under various speed configurations.
+- Edge cases: zero-distance moves, extreme control-point offsets.
+
+#### `tests/test_main.py` (95 lines, ~10 tests)
+Unit tests for the screen-location retry loop in `main.py`:
+- Loop terminates when `locate_on_screen` returns a match.
+- Loop continues and retries when the image is not found.
+- `time.sleep` is called between retries.
+
+#### `requirements.txt`
+Added `pytest` as a development dependency.
+
+---
 
 ## Files Modified
 
 | File | Change |
 |------|--------|
-| `utils/finder.py` | Off-by-one fix: `box.width` → `box.width - 1`, `box.height` → `box.height - 1`; docstring `res_color` → `pixel_color` |
-| `main.py` | Removed unused imports: `pyautogui`, `win32api`, `win32con`, `random`, `keyboard`, `numpy`, `pixel_check` |
-| `utils/human_move.py` | Removed unused `import time` |
-| `utils/press_key.py` | Removed unused `import random` |
-| `gui/main_gui.py` | Removed unused `import tkinter as tk` |
+| `requirements.txt` | Added `pytest` |
+| `tests/__init__.py` | New — makes `tests/` a package |
+| `tests/conftest.py` | New — cross-platform stub for Windows modules |
+| `tests/test_finder.py` | New — unit tests for `utils/finder.py` |
+| `tests/test_human_move.py` | New — unit tests for `utils/human_move.py` |
+| `tests/test_main.py` | New — unit tests for `main.py` retry loop |
 
-## Testing
+*(Bug-fix files — `utils/finder.py`, `main.py`, `utils/human_move.py`,*
+*`utils/press_key.py`, `gui/main_gui.py` — were modified in the prior PR.)*
 
-Static analysis was performed on all Python files. Runtime testing is not possible in this environment because the project targets Windows (requires `win32api` and a display server). The fixes are verified by inspection:
-
-- The off-by-one fix ensures `random.randint` upper bounds stay within the image box boundaries.
-- All removed imports were confirmed to have zero references in their respective files.
-- The docstring fix aligns documentation with the actual parameter name.
+---
 
 ## Follow-up Notes
 
-- Integration testing should be done on Windows with a running display to validate the full automation pipeline (`locate_on_screen` → `human_move_curved` → `click`).
-- `main.py` runs an infinite loop until the coin image is found with no timeout or maximum-retry limit — consider adding a safeguard for production use.
-- The project has no automated tests; adding a test suite (e.g., with `pytest` and mocked `pyautogui`) would help catch regressions.
+- **Windows runtime testing**: Integration tests require a Windows host with a
+  display; the current suite covers logic in isolation via mocks.
+- **CI pipeline**: Consider adding a GitHub Actions workflow that runs
+  `pytest tests/` on push to `dev` and `main`.
+- **Retry safeguard**: `main.py` runs an infinite loop with no timeout or
+  maximum-retry limit — adding one would improve robustness in production use.
+- **Coverage**: Current tests exercise the happy path and key error paths;
+  additional edge cases (e.g., `human_move_curved` with identical start/end
+  points) can be added incrementally.
