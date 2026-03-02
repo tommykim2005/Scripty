@@ -1,0 +1,7 @@
+# Test dependencies for WizBot smoke tests
+# Install with: pip install -r requirements-test.txt
+#
+# The main project dependencies (pyautogui, pywin32, etc.) are NOT required
+# for running the test suite — they are fully stubbed by conftest.py.
+
+pytest>=7.4
