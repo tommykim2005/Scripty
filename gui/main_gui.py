@@ -1,4 +1,3 @@
-import tkinter as tk
 import customtkinter
 from utils.finder import locate_on_screen
 
