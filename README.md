@@ -1,4 +1,4 @@
-# WizBot
+# Scripty
 
 A Python automation toolkit featuring human-like mouse movements and image recognition for screen interaction.
 
