@@ -1,6 +1,5 @@
 # utils/human_move.py
 import pyautogui
-import time
 import random
 import math
 from typing import Optional
